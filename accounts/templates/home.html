@@ -1,0 +1,179 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+    <div id="app" class="container h-screen w-screen max-w-7xl mx-auto p-8">
+
+       {% if user.is_authenticated %}
+
+        <form action="/" method="post">{% csrf_token %}
+            <input type="hidden" value="true" name="logout" />
+            <button type="submit" class="px-3 py-2 text-white bg-primary top-0 right-0 m-2 rounded">Logout</button>
+
+        </form>
+         {% endif %}
+        <div>
+            <div class="flex justify-between border font-bold">
+                <div class="border-r w-full text-center">Book Name
+                </div>
+                <div class="border-r w-full text-center">Author</div>
+                <div class="border-r w-full text-center">ISBN</div>
+                <div class="w-full text-center border-r">Publication</div>
+                {% if user.is_authenticated %}
+                     <div class="w-full text-center">Action</div>
+                 {% endif %}
+
+            </div>
+            {% for book in books %}
+            <div class="flex justify-between border">
+                <div class="border-r w-full text-center">{{forloop.counter}}) {{book.name}}</div>
+                <div class="border-r w-full text-center">{{book.author}}</div>
+                <div class="border-r w-full text-center">{{book.isbn}}</div>
+                <div class="w-full text-center border-r">{{book.publication}}</div>
+
+                {% if user.is_authenticated %}
+                <div class="w-full text-center flex p-2">
+                    <button @click.stop="setEditableBook('{{book.uid}}','{{book.name}}','{{book.author}}','{{book.isbn}}','{{book.publication}}')" class="px-3 py-2 bg-primary text-white mr-2 w-1/2 rounded">Edit </button>
+                    <button @click.stop="setDeleteBook('{{book.uid}}')" class="px-3 py-2 bg-reddish text-white w-1/2 rounded">Delete</button></div>
+                 {% endif %}
+
+            </div>
+            {% endfor %}
+
+        </div>
+        {% if user.is_authenticated %}
+            <button @click.stop="toggleAddBook()" class="px-6 py-2 rounded bg-primary text-white m-4 fixed bottom-0 right-0">
+                Add Book
+            </button>
+
+        {% endif %}
+
+    <div v-if="addBook" class="fixed top-0 left-0 w-screen h-screen bg-dim_bg z-50 flex justify-center items-center">
+        <form class="w-1/2 bg-white shadow border rounded p-4 relative" action="/add-book" method="POST">{% csrf_token %}
+            <span @click.stop="toggleAddBook()" class="absolute top-0 right-0 m-4 cursor-pointer">X</span>
+            <div>
+                <h4 class="text-2xl text-primary text-center w-full font-semibold mb-4">Add Book</h4>
+            </div>
+            <div>
+                {% if error %}
+                    <p class="text-reddish text-xs my-2">{{ error }}</p>
+                {% endif %}
+            </div>
+            <div>
+                <input class="p-2 border rounded w-full mb-4 flex flex-col" placeholder="Enter Book Name" type="text" name="bookName" />
+            </div>
+            <div>
+                <input class="p-2 border rounded w-full flex flex-col" placeholder="Enter Author Name" autocomplete="off" type="text" name="authorName" />
+            </div>
+            <div class="my-4">
+                <input class="p-2 border rounded w-full flex flex-col" placeholder="Enter ISBN" autocomplete="off" type="text" name="isbn" />
+            </div>
+            <div class="my-4">
+                <input class="p-2 border rounded w-full flex flex-col" placeholder="Enter Publication" type="text" name="publication" />
+            </div>
+            <div>
+                <button class="p-2 bg-primary text-white w-full rounded" type="submit">Submit</button>
+            </div>
+        </form>
+    </div>
+
+            <div v-if="updateBook" class="fixed top-0 left-0 w-screen h-screen bg-dim_bg z-50 flex justify-center items-center">
+        <form class="w-1/2 bg-white shadow border rounded p-4 relative" action="/update-book" method="POST">{% csrf_token %}
+            <span @click.stop="toggleUpdateBook()" class="absolute top-0 right-0 m-4 cursor-pointer">X</span>
+            <div>
+                <h4 class="text-2xl text-primary text-center w-full font-semibold mb-4">Update Book</h4>
+            </div>
+            <input type="hidden"  v-model="uid" name="uid" />
+            <div>
+                {% if error %}
+                    <p class="text-reddish text-xs my-2">{{ error }}</p>
+                {% endif %}
+            </div>
+            <div>
+                <input class="p-2 border rounded w-full mb-4 flex flex-col" v-model="bookName" placeholder="Enter Book Name" type="text" name="bookName" />
+            </div>
+            <div>
+                <input class="p-2 border rounded w-full flex flex-col" v-model="author" placeholder="Enter Author Name" autocomplete="off" type="text" name="authorName" />
+            </div>
+            <div class="my-4">
+                <input class="p-2 border rounded w-full flex flex-col" v-model="isbn" placeholder="Enter ISBN" autocomplete="off" type="text" name="isbn" />
+            </div>
+            <div class="my-4">
+                <input class="p-2 border rounded w-full flex flex-col" v-model="publication" placeholder="Enter Publication" type="text" name="publication"  />
+            </div>
+            <div>
+                <button class="p-2 bg-primary text-white w-full rounded" type="submit">Submit</button>
+            </div>
+        </form>
+    </div>
+
+        <div v-if="deleteBook" class="fixed top-0 left-0 w-screen h-screen bg-dim_bg z-50 flex justify-center items-center">
+        <form class="w-1/2 bg-white shadow border rounded p-4 relative" action="/delete-book" method="POST">{% csrf_token %}
+            <div>
+                <h4 class="text-2xl text-primary text-center w-full font-semibold mb-4">Delete Book</h4>
+            </div>
+            <input type="hidden"  v-model="uid" name="uid" />
+            <div class="flex justify-between ">
+                <button type="submit" class="px-3 py-2 text-center text-white bg-reddish mx-2 w-1/2 rounded">
+                    Yes
+                </button>
+                <div @click.stop="toggleDeleteBook()" class="px-3 py-2 text-center text-white bg-primary mx-2 w-1/2 rounded cursor-pointer">
+                    No
+                </div>
+            </div>
+        </form>
+    </div>
+
+    </div>
+
+
+ <script>
+            var app = new Vue({
+                  el: '#app',
+                  data: {
+                    message: 'Hello Vue!',
+                    addBook: false,
+                    deleteBook : false,
+                    updateBook : false,
+                    uid : null,
+                    bookName : null,
+                    author : null,
+                    isbn : null,
+                    publication : null,
+
+                  },
+                  delimiters: ['[[',']]'],
+                  methods:{
+                    toggleAddBook(){
+                        this.addBook = !this.addBook
+
+                    },
+                    toggleUpdateBook(){
+                        this.updateBook = !this.updateBook
+                    },
+                    setEditableBook(uid,bookName,author,isbn,publication){
+                        this.uid = uid;
+                        this.bookName = bookName;
+                        this.author = author;
+                        this.isbn = isbn;
+                        this.publication = publication;
+                        this.toggleUpdateBook();
+                        console.log(this.uid);
+                        console.log(this.bookName);
+                        console.log(this.author);
+                    },
+                    toggleDeleteBook(){
+                        this.deleteBook = !this.deleteBook
+                    },
+                    setDeleteBook(uid){
+                        this.uid = uid;
+                        this.toggleDeleteBook();
+                    }
+
+
+                  }
+                })
+
+
+        </script>
+
+{% endblock content %}

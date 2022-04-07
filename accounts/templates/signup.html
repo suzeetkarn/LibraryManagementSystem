@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+    <div class="container h-screen w-screen max-w-7xl mx-auto flex justify-center items-center">
+        <form action="/signup" method="POST">{% csrf_token %}
+            <div>
+                <h4 class="text-2xl text-primary text-center w-full font-semibold mb-4">Admin Signup</h4>
+            </div>
+            <div>
+                {% if error %}
+                    <p class="text-reddish text-xs my-2">{{ error }}</p>
+                {% endif %}
+            </div>
+            <div>
+                <input class="p-2 border rounded w-full mb-4 flex flex-col" placeholder="Enter your name" type="text" name="name" />
+            </div>
+            <div>
+                <input class="p-2 border rounded w-full flex flex-col" placeholder="Enter your email" autocomplete="off" type="email" name="email" />
+            </div>
+            <div class="my-4">
+                <input class="p-2 border rounded w-full flex flex-col" placeholder="Enter Password" autocomplete="off" type="password" name="password" />
+            </div>
+            <div class="my-4">
+                <input class="p-2 border rounded w-full flex flex-col" placeholder="Repeat password" type="password" name="confirm_password" />
+            </div>
+            <div>
+                <button class="p-2 bg-primary text-white w-full rounded" type="submit">Signup</button>
+            </div>
+        </form>
+    </div>
+{% endblock content %}
